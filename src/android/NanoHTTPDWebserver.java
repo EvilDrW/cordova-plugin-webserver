@@ -207,15 +207,21 @@ public class NanoHTTPDWebserver extends NanoHTTPD {
         pluginResult.setKeepCallback(true);
         this.webserver.onRequestCallbackContext.sendPluginResult(pluginResult);
 
+        int j = 0;
         while (!this.webserver.responses.containsKey(requestUUID)) {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            j++;
+            if (j >= 5000) {
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "text/plain", "Timed out waiting for JS response");
+            }
         }
 
-        JSONObject responseObject = (JSONObject) this.webserver.responses.get(requestUUID);
+        JSONObject responseObject = (JSONObject) this.webserver.responses.remove(requestUUID);
         Response response = null;
         Log.d(this.getClass().getName(), "responseObject: " + responseObject.toString());
 
